@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Malvo - Research Made Simple</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
+            color: #ffffff;
+            overflow-x: hidden;
+            min-height: 100vh;
+            cursor: none;
+        }
+
+        /* Custom Cursor */
+        .cursor {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #00d4ff;
+            border-radius: 50%;
+            position: fixed;
+            pointer-events: none;
+            z-index: 9999;
+            mix-blend-mode: difference;
+            transition: all 0.1s ease;
+        }
+
+        .cursor-trail {
+            width: 8px;
+            height: 8px;
+            background: #00d4ff;
+            border-radius: 50%;
+            position: fixed;
+            pointer-events: none;
+            z-index: 9998;
+            opacity: 0.7;
+        }
+
+        /* Animated Background */
+        .bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .floating-particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: #00d4ff;
+            border-radius: 50%;
+            animation: float 6s ease-in-out infinite;
+            opacity: 0.3;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(180deg); }
+        }
+
+        /* Header */
+        header {
+            position: relative;
+            z-index: 100;
+            padding: 2rem 0;
+            text-align: center;
+        }
+
+        .logo {
+            font-size: 3rem;
+            font-weight: 800;
+            background: linear-gradient(45deg, #00d4ff, #00ff88);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1rem;
+            text-shadow: 0 0 30px rgba(0, 212, 255, 0.5);
+        }
+
+        .tagline {
+            font-size: 1.2rem;
+            opacity: 0.8;
+            margin-bottom: 3rem;
+        }
+
+        /* Main Container */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* Upload Section */
+        .upload-section {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 3rem;
+            margin-bottom: 3rem;
+            transition: all 0.3s ease;
+        }
+
+        .upload-section:hover {
+            background: rgba(255, 255, 255, 0.08);
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 212, 255, 0.1);
+        }
+
+        .upload-tabs {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 2rem;
+            gap: 1rem;
+        }
+
+        .tab {
+            padding: 1rem 2rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .tab.active {
+            background: linear-gradient(45deg, #00d4ff, #00ff88);
+            color: #000;
+            font-weight: 600;
+        }
+
+        .tab:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 212, 255, 0.2);
+        }
+
+        .upload-area {
+            border: 2px dashed rgba(0, 212, 255, 0.5);
+            border-radius: 15px;
+            padding: 3rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            margin-bottom: 2rem;
+        }
+
+        .upload-area:hover {
+            border-color: #00d4ff;
+            background: rgba(0, 212, 255, 0.05);
+        }
+
+        .upload-area.dragover {
+            border-color: #00ff88;
+            background: rgba(0, 255, 136, 0.1);
+        }
+
+        .upload-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.7;
+        }
+
+        .upload-text {
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+        }
+
+        .upload-subtext {
+            opacity: 0.6;
+            margin-bottom: 2rem;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .upload-btn {
+            background: linear-gradient(45deg, #00d4ff, #00ff88);
+            color: #000;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-right: 1rem;
+        }
+
+        .upload-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 212, 255, 0.3);
+        }
+
+        .url-input {
+            width: 100%;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            color: #fff;
+            font-size: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .url-input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .process-btn {
+            background: linear-gradient(45deg, #ff6b6b, #ff8e8e);
+            color: #fff;
+            border: none;
+            padding: 1rem 3rem;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+
+        .process-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(255, 107, 107, 0.3);
+        }
+
+        .process-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Loading Animation */
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid rgba(0, 212, 255, 0.3);
+            border-top: 3px solid #00d4ff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Results Section */
+        .results-section {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 3rem;
+            margin-bottom: 3rem;
+            display: none;
+        }
+
+        .result-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border-left: 4px solid #00d4ff;
+        }
+
+        .result-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: #00d4ff;
+        }
+
+        .result-content {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+        }
+
+        .example-section {
+            background: rgba(0, 255, 136, 0.1);
+            border-radius: 10px;
+            padding: 1.5rem;
+            border-left: 4px solid #00ff88;
+        }
+
+        .example-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: #00ff88;
+        }
+
+        /* Comic/Visualization Placeholder */
+        .visualization {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 2rem;
+            text-align: center;
+            margin-top: 2rem;
+            border: 2px dashed rgba(255, 255, 255, 0.2);
+        }
+
+        .viz-placeholder {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0.7;
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 3rem 0;
+            opacity: 0.6;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 0 1rem;
+            }
+            
+            .upload-section {
+                padding: 2rem;
+            }
+            
+            .logo {
+                font-size: 2rem;
+            }
+            
+            .upload-tabs {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Custom Cursor -->
+    <div class="cursor"></div>
+    
+    <!-- Background Animation -->
+    <div class="bg-animation"></div>
+
+    <!-- Header -->
+    <header>
+        <div class="container">
+            <h1 class="logo">Malvo</h1>
+            <p class="tagline">Transform Complex Research into Simple Stories</p>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container">
+        <!-- Upload Section -->
+        <section class="upload-section">
+            <div class="upload-tabs">
+                <div class="tab active" data-tab="url">📎 Article Link</div>
+                <div class="tab" data-tab="pdf">📄 Upload PDF</div>
+            </div>
+
+            <div class="upload-content" id="url-content">
+                <div class="upload-area">
+                    <div class="upload-icon">🔗</div>
+                    <div class="upload-text">Paste your research paper link</div>
+                    <div class="upload-subtext">Support for arXiv, PubMed, and most academic sources</div>
+                    <input type="url" class="url-input" placeholder="https://arxiv.org/abs/..." id="urlInput">
+                </div>
+            </div>
+
+            <div class="upload-content" id="pdf-content" style="display: none;">
+                <div class="upload-area" id="dropArea">
+                    <div class="upload-icon">📄</div>
+                    <div class="upload-text">Drop your PDF here</div>
+                    <div class="upload-subtext">Or click to browse files (Max 10MB)</div>
+                    <input type="file" class="file-input" id="fileInput" accept=".pdf">
+                    <button class="upload-btn" onclick="document.getElementById('fileInput').click()">Browse Files</button>
+                </div>
+            </div>
+
+            <button class="process-btn" id="processBtn">🚀 Simplify This Paper</button>
+        </section>
+
+        <!-- Loading Section -->
+        <section class="loading" id="loadingSection">
+            <div class="loading-spinner"></div>
+            <p>Our AI is reading and simplifying your research paper...</p>
+            <p style="opacity: 0.6; margin-top: 1rem;">This may take a few moments</p>
+        </section>
+
+        <!-- Results Section -->
+        <section class="results-section" id="resultsSection">
+            <div class="result-card">
+                <h2 class="result-title">🎯 What This Paper Is About</h2>
+                <div class="result-content" id="simplifiedContent">
+                    <!-- AI-generated simplified content will appear here -->
+                </div>
+            </div>
+
+            <div class="result-card">
+                <h2 class="result-title">👶 Toddler-Friendly Example</h2>
+                <div class="example-section">
+                    <h3 class="example-title">Simple Example:</h3>
+                    <div class="result-content" id="exampleContent">
+                        <!-- AI-generated example will appear here -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="visualization">
+                <div class="viz-placeholder">🎨</div>
+                <p>Visual representation coming soon!</p>
+                <p style="opacity: 0.6; margin-top: 0.5rem;">Comic-style visualization will be generated here</p>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <p>&copy; 2024 Malvo - Making Research Accessible to Everyone</p>
+        </div>
+    </footer>
+
+    <script>
+        // Custom cursor effect
+        const cursor = document.querySelector('.cursor');
+        const trails = [];
+        
+        // Create cursor trails
+        for (let i = 0; i < 5; i++) {
+            const trail = document.createElement('div');
+            trail.className = 'cursor-trail';
+            document.body.appendChild(trail);
+            trails.push(trail);
+        }
+        
+        let mouseX = 0, mouseY = 0;
+        let trailX = [], trailY = [];
+        
+        for (let i = 0; i < trails.length; i++) {
+            trailX[i] = 0;
+            trailY[i] = 0;
+        }
+        
+        document.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+        });
+        
+        function updateCursor() {
+            cursor.style.left = mouseX + 'px';
+            cursor.style.top = mouseY + 'px';
+            
+            for (let i = 0; i < trails.length; i++) {
+                trailX[i] += (mouseX - trailX[i]) * (0.1 + i * 0.02);
+                trailY[i] += (mouseY - trailY[i]) * (0.1 + i * 0.02);
+                
+                trails[i].style.left = trailX[i] + 'px';
+                trails[i].style.top = trailY[i] + 'px';
+                trails[i].style.opacity = (1 - i * 0.2) * 0.7;
+            }
+            
+            requestAnimationFrame(updateCursor);
+        }
+        
+        updateCursor();
+        
+        // Background particles
+        function createParticles() {
+            const bgAnimation = document.querySelector('.bg-animation');
+            
+            for (let i = 0; i < 50; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'floating-particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.top = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 6 + 's';
+                particle.style.animationDuration = (Math.random() * 4 + 4) + 's';
+                bgAnimation.appendChild(particle);
+            }
+        }
+        
+        createParticles();
+        
+        // Tab switching
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                
+                const tabType = tab.getAttribute('data-tab');
+                document.querySelectorAll('.upload-content').forEach(content => {
+                    content.style.display = 'none';
+                });
+                document.getElementById(tabType + '-content').style.display = 'block';
+            });
+        });
+        
+        // File drag and drop
+        const dropArea = document.getElementById('dropArea');
+        const fileInput = document.getElementById('fileInput');
+        
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropArea.addEventListener(eventName, preventDefaults, false);
+        });
+        
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropArea.addEventListener(eventName, highlight, false);
+        });
+        
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropArea.addEventListener(eventName, unhighlight, false);
+        });
+        
+        function highlight() {
+            dropArea.classList.add('dragover');
+        }
+        
+        function unhighlight() {
+            dropArea.classList.remove('dragover');
+        }
+        
+        dropArea.addEventListener('drop', handleDrop, false);
+        
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            fileInput.files = files;
+            handleFiles(files);
+        }
+        
+        function handleFiles(files) {
+            if (files.length > 0) {
+                const file = files[0];
+                if (file.type === 'application/pdf') {
+                    document.querySelector('#pdf-content .upload-text').textContent = `Selected: ${file.name}`;
+                } else {
+                    alert('Please select a PDF file');
+                }
+            }
+        }
+        
+        fileInput.addEventListener('change', (e) => {
+            handleFiles(e.target.files);
+        });
+        
+        // Process button functionality
+        document.getElementById('processBtn').addEventListener('click', async () => {
+            const activeTab = document.querySelector('.tab.active').getAttribute('data-tab');
+            const loadingSection = document.getElementById('loadingSection');
+            const resultsSection = document.getElementById('resultsSection');
+            const processBtn = document.getElementById('processBtn');
+            
+            let content = '';
+            
+            if (activeTab === 'url') {
+                const url = document.getElementById('urlInput').value;
+                if (!url) {
+                    alert('Please enter a URL');
+                    return;
+                }
+                content = url;
+            } else {
+                const file = fileInput.files[0];
+                if (!file) {
+                    alert('Please select a PDF file');
+                    return;
+                }
+                content = await readPDFFile(file);
+            }
+            
+            // Show loading
+            loadingSection.style.display = 'block';
+            resultsSection.style.display = 'none';
+            processBtn.disabled = true;
+            
+            // Simulate AI processing (replace with actual API call)
+            setTimeout(() => {
+                // Hide loading
+                loadingSection.style.display = 'none';
+                resultsSection.style.display = 'block';
+                processBtn.disabled = false;
+                
+                // Display results (this would be replaced with actual AI-generated content)
+                displayResults(content);
+            }, 3000);
+        });
+        
+        async function readPDFFile(file) {
+            // This is a placeholder - you would implement actual PDF reading here
+            // For now, we'll just return the filename
+            return `PDF content from: ${file.name}`;
+        }
+        
+        function displayResults(content) {
+            // This is where you'd integrate with actual AI APIs
+            // For demonstration, we'll show sample content
+            
+            const simplifiedContent = document.getElementById('simplifiedContent');
+            const exampleContent = document.getElementById('exampleContent');
+            
+            simplifiedContent.innerHTML = `
+                <p>This research paper talks about how computers can learn to understand and process human language, just like how we learn to understand different languages when we're growing up.</p>
+                <p>The scientists found a new way to make computers better at understanding what people mean when they write or speak, especially when the meaning isn't obvious.</p>
+                <p>They tested their method and found it works really well - much better than older ways of doing the same thing.</p>
+            `;
+            
+            exampleContent.innerHTML = `
+                <p><strong>Imagine you're teaching a robot to understand jokes:</strong></p>
+                <p>At first, the robot only knows that "Why did the chicken cross the road?" has the words "chicken," "cross," and "road." It doesn't understand it's a joke setup.</p>
+                <p>But with this new method, the robot learns that when people say this phrase, they're usually about to tell a funny story. It's like the robot develops a sense of humor!</p>
+                <p>The scientists made the robot-teacher so much better that it can now understand not just jokes, but also when people are being sarcastic, sad, or excited - just from reading their words.</p>
+            `;
+        }
+        
+        // Add some interactive hover effects
+        document.querySelectorAll('.upload-btn, .process-btn, .tab').forEach(element => {
+            element.addEventListener('mouseenter', () => {
+                cursor.style.transform = 'scale(1.5)';
+                cursor.style.backgroundColor = 'rgba(0, 212, 255, 0.2)';
+            });
+            
+            element.addEventListener('mouseleave', () => {
+                cursor.style.transform = 'scale(1)';
+                cursor.style.backgroundColor = 'transparent';
+            });
+        });
+    </script>
+</body>
+</html>
